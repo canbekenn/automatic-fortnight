@@ -1,7 +1,7 @@
 import os
 import requests
 import psycopg2
-from psycopg2 import sql
+from psycopg2 import sql, extras
 
 # Coinbase API endpoint
 COINBASE_URLS = [
@@ -44,7 +44,7 @@ def bulk_insert_into_neon(data_list):
     
     try:
         # Using execute_values for efficient bulk insert
-        psycopg2.extras.execute_values(
+        extras.execute_values(
             cur,
             query,
             data_list,
