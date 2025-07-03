@@ -34,8 +34,8 @@ def bulk_insert_into_neon(data_list):
         print("No data to insert")
         return
     
-    api_key = os.environ.get('CRON_COLLECTABLE_KEY')
-    print(api_key)
+    # api_key = os.environ.get('CRON_COLLECTABLE_KEY')
+    api_key = "postgresql://neondb_owner:npg_0MTXgiUj1Ftw@ep-proud-math-acgxu7vx-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require" #this is dev to check
     conn = psycopg2.connect(api_key)
     cur = conn.cursor()
     
