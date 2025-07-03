@@ -33,8 +33,9 @@ def bulk_insert_into_neon(data_list):
     if not data_list:
         print("No data to insert")
         return
-        
-    conn = psycopg2.connect(os.environ["CRON_COLLECTABLE_KEY"])
+    
+    api_key = os.environ.get('CRON_COLLECTABLE_KEY')
+    conn = psycopg2.connect(api_key)
     cur = conn.cursor()
     
     query = sql.SQL("""
