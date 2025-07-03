@@ -25,4 +25,4 @@ jobs:
     - name: Run script
       env:
         NEON_DB_URL: ${{ secrets.CRON_COLLECTABLE_KEY }}
-      run: python exchange_rates.py
+      run: python exchange-rates.py
