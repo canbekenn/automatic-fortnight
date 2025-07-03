@@ -35,6 +35,7 @@ def bulk_insert_into_neon(data_list):
         return
     
     api_key = os.environ.get('CRON_COLLECTABLE_KEY')
+    print(api_key)
     conn = psycopg2.connect(api_key)
     cur = conn.cursor()
     
