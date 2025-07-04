@@ -16,13 +16,6 @@ COINBASE_URLS = [
     "https://api.coinbase.com/v2/prices/USDT-LTC/spot ",
 ]
 
-def handle_exit(signum, frame):
-    print("Termination signal received. Exiting gracefully...")
-    exit(0)
-
-signal.signal(signal.SIGTERM, handle_exit)
-signal.signal(signal.SIGINT, handle_exit)  # Handle Ctrl+C locally
-
 def fetch_all_prices():
     all_data = []
     for url in COINBASE_URLS:
