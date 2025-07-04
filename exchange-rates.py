@@ -132,6 +132,6 @@ if __name__ == "__main__":
             break
             
         sleep_duration = min(300, remaining_seconds)  # Max 5 minutes
-        next_wake = datetime.fromtimestam(time.time() + sleep_duration, tz=timezone.utc)
+        next_wake = datetime.fromtimestamp(time.time() + sleep_duration, tz=timezone.utc)
         print(f"[{datetime.now(timezone.utc)} UTC] Sleeping for {sleep_duration}s... Next wake: {next_wake} UTC")
         time.sleep(sleep_duration)
