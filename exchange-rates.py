@@ -3,7 +3,7 @@ import requests
 import psycopg2
 from psycopg2 import sql, extras
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import signal
 
 # Coinbase API endpoint
@@ -34,11 +34,37 @@ def fetch_all_prices():
                 data["data"]["base"],
                 data["data"]["currency"],
                 float(data["data"]["amount"]),
-                datetime.utcnow()  # Add timestamp for idempotency
             ))
         except (requests.RequestException, KeyError) as e:
             print(f"Error fetching data from {url}: {str(e)}")
     return all_data
+
+def delete_old_exchange_prices():
+    api_key = os.environ['CRON_COLLECTABLE_KEY']
+    conn = None
+    cur = None
+    try:
+        conn = psycopg2.connect(api_key)
+        cur = conn.cursor()
+
+        # Call the function and get the result
+        cur.execute("SELECT delete_old_exchange_prices();")
+        deleted_count = cur.fetchone()[0]  # Get returned count
+        conn.commit()
+
+        print(f"Successfully deleted {deleted_count} old records.")
+    
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error deleting old records: {e}")
+    
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+        conn.close()
 
 def bulk_insert_into_neon(data_list):
     if not data_list:
@@ -50,9 +76,9 @@ def bulk_insert_into_neon(data_list):
     cur = conn.cursor()
     
     query = sql.SQL("""
-    INSERT INTO exchange_prices (base, currency, price, timestamp)
+    INSERT INTO exchange_prices (base, currency, price)
     VALUES %s
-    ON CONFLICT (base, currency, timestamp) DO NOTHING
+    ON CONFLICT (base, currency) DO NOTHING
     """)
     
     try:
@@ -85,9 +111,11 @@ if __name__ == "__main__":
     next_run = get_next_scheduled_time()
     end_time = next_run.timestamp()
     
-    print(f"Current time (UTC): {datetime.utcnow()}")
+    print(f"Current time (UTC): {datetime.now(timezone.utc)}")
     print(f"Next scheduled run: {next_run} UTC")
     print(f"Total runtime allowed: {(end_time - time.time()) / 3600:.2f} hours")
+
+    delete_old_exchange_prices()
 
     while time.time() < end_time:
         print("\n" + "-" * 40)
@@ -104,6 +132,6 @@ if __name__ == "__main__":
             break
             
         sleep_duration = min(300, remaining_seconds)  # Max 5 minutes
-        next_wake = datetime.utcfromtimestamp(time.time() + sleep_duration)
-        print(f"[{datetime.utcnow()} UTC] Sleeping for {sleep_duration}s... Next wake: {next_wake} UTC")
+        next_wake = datetime.fromtimestam(time.time() + sleep_duration, tz=timezone.utc)
+        print(f"[{datetime.now(timezone.utc)} UTC] Sleeping for {sleep_duration}s... Next wake: {next_wake} UTC")
         time.sleep(sleep_duration)
