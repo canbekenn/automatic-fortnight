@@ -78,7 +78,6 @@ def bulk_insert_into_neon(data_list):
     query = sql.SQL("""
     INSERT INTO exchange_prices (base, currency, price)
     VALUES %s
-    ON CONFLICT (base, currency) DO NOTHING
     """)
     
     try:
