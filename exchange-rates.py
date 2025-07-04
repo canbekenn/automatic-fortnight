@@ -64,7 +64,6 @@ def delete_old_exchange_prices():
             cur.close()
         if conn:
             conn.close()
-        conn.close()
 
 def bulk_insert_into_neon(data_list):
     if not data_list:
@@ -78,6 +77,7 @@ def bulk_insert_into_neon(data_list):
     query = sql.SQL("""
     INSERT INTO exchange_prices (base, currency, price)
     VALUES %s
+    ON CONFLICT (base, currency) DO NOTHING
     """)
     
     try:
@@ -85,7 +85,7 @@ def bulk_insert_into_neon(data_list):
             cur,
             query,
             data_list,
-            template="(%s, %s, %s, %s)",
+            template="(%s, %s, %s)",
             page_size=len(data_list)
         )
         conn.commit()
