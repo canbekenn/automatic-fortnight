@@ -3,7 +3,8 @@ import requests
 import psycopg2
 from psycopg2 import sql, extras
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
+import signal
 
 # Coinbase API endpoint
 COINBASE_URLS = [
@@ -15,17 +16,25 @@ COINBASE_URLS = [
     "https://api.coinbase.com/v2/prices/USDT-LTC/spot ",
 ]
 
+def handle_exit(signum, frame):
+    print("Termination signal received. Exiting gracefully...")
+    exit(0)
+
+signal.signal(signal.SIGTERM, handle_exit)
+signal.signal(signal.SIGINT, handle_exit)  # Handle Ctrl+C locally
+
 def fetch_all_prices():
     all_data = []
     for url in COINBASE_URLS:
         try:
-            response = requests.get(url.strip())
+            response = requests.get(url.strip(), timeout=10)  # Add timeout
             response.raise_for_status()
             data = response.json()
             all_data.append((
                 data["data"]["base"],
                 data["data"]["currency"],
-                float(data["data"]["amount"])
+                float(data["data"]["amount"]),
+                datetime.utcnow()  # Add timestamp for idempotency
             ))
         except (requests.RequestException, KeyError) as e:
             print(f"Error fetching data from {url}: {str(e)}")
@@ -41,8 +50,9 @@ def bulk_insert_into_neon(data_list):
     cur = conn.cursor()
     
     query = sql.SQL("""
-    INSERT INTO exchange_prices (base, currency, price)
+    INSERT INTO exchange_prices (base, currency, price, timestamp)
     VALUES %s
+    ON CONFLICT (base, currency, timestamp) DO NOTHING
     """)
     
     try:
@@ -50,7 +60,7 @@ def bulk_insert_into_neon(data_list):
             cur,
             query,
             data_list,
-            template="(%s, %s, %s)",
+            template="(%s, %s, %s, %s)",
             page_size=len(data_list)
         )
         conn.commit()
