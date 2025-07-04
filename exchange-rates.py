@@ -3,8 +3,7 @@ import requests
 import psycopg2
 from psycopg2 import sql, extras
 import time
-from datetime import datetime, timezone
-import signal
+from datetime import datetime, timezone, timedelta
 
 # Coinbase API endpoint
 COINBASE_URLS = [
@@ -92,9 +91,14 @@ def bulk_insert_into_neon(data_list):
 def get_next_scheduled_time():
     """Calculate next 6-hour interval (0, 6, 12, 18 UTC)"""
     now = datetime.utcnow()
-    # Round to next 6-hour mark (0, 6, 12, 18)
     hours = ((now.hour // 6) + 1) * 6
-    next_time = now.replace(hour=hours, minute=0, second=0, microsecond=0)
+    
+    if hours == 24:
+        # Wrap to next day's 00:00
+        next_time = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    else:
+        next_time = now.replace(hour=hours, minute=0, second=0, microsecond=0)
+    
     return next_time
 
 if __name__ == "__main__":
