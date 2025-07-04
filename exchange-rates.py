@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print(f"Next scheduled run: {next_run} UTC")
     print(f"Total runtime allowed: {(end_time - time.time()) / 3600:.2f} hours")
 
-    # delete_old_exchange_prices()
+    delete_old_exchange_prices()
 
     while time.time() < end_time:
         print("\n" + "-" * 40)
