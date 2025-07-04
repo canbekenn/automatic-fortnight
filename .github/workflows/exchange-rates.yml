@@ -2,13 +2,14 @@ name: Exchanges Rates
 
 on:
   schedule:
-    - cron: "* * * * *"  
+    - cron: "0 0/6 * * *"
   workflow_dispatch:     
 
 jobs:
   update-price:
     environment: Production  
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
